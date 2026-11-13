@@ -10,7 +10,7 @@ const emptyState = document.getElementById("empty-state");
 function loadPrompts() {
   try {
     const prompts = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-    return prompts.map((p) => ({ ...p, rating: p.rating ?? 0 }));
+    return prompts.map((p) => ({ ...p, rating: p.rating ?? 0, notes: p.notes ?? [] }));
   } catch {
     return [];
   }
@@ -51,7 +51,7 @@ function render() {
     footer.className = "card-footer";
     footer.append(createStarRating(prompt), deleteBtn);
 
-    card.append(title, content, footer);
+    card.append(title, content, createNotesSection(prompt), footer);
     promptList.appendChild(card);
   });
 }
@@ -117,8 +117,145 @@ function createStarRating(prompt) {
   return wrapper;
 }
 
+// ---- Notes ----
+
+// Only one note editor is open at a time across the whole app.
+// noteId "new" means the "add note" editor is open for that prompt.
+// draft holds the typed text so it survives re-renders (e.g. rating a prompt mid-edit).
+let editing = null; // { promptId, noteId, draft } or null
+
+function updatePromptNotes(promptId, change) {
+  const prompts = loadPrompts();
+  const prompt = prompts.find((p) => p.id === promptId);
+  if (!prompt) return;
+  prompt.notes = change(prompt.notes);
+  savePrompts(prompts);
+}
+
+function addNote(promptId, text) {
+  updatePromptNotes(promptId, (notes) => [...notes, { id: Date.now().toString(), text }]);
+  editing = null;
+  render();
+}
+
+function updateNote(promptId, noteId, text) {
+  updatePromptNotes(promptId, (notes) =>
+    notes.map((n) => (n.id === noteId ? { ...n, text } : n)));
+  editing = null;
+  render();
+}
+
+function deleteNote(promptId, noteId) {
+  updatePromptNotes(promptId, (notes) => notes.filter((n) => n.id !== noteId));
+  render();
+}
+
+function startEditing(promptId, noteId, text) {
+  editing = { promptId, noteId, draft: text };
+  render();
+  const input = promptList.querySelector(".note-input");
+  if (input) {
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
+  }
+}
+
+function cancelEditing() {
+  editing = null;
+  render();
+}
+
+function isEditing(promptId, noteId) {
+  return editing !== null && editing.promptId === promptId && editing.noteId === noteId;
+}
+
+function createSmallButton(label, className, onClick) {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "btn-small " + className;
+  btn.textContent = label;
+  btn.addEventListener("click", onClick);
+  return btn;
+}
+
+function createNoteEditor(onSave) {
+  const editor = document.createElement("div");
+  editor.className = "note-editor";
+
+  const input = document.createElement("textarea");
+  input.className = "note-input";
+  input.rows = 3;
+  input.placeholder = "Write a note...";
+  input.value = editing.draft;
+  input.addEventListener("input", () => { editing.draft = input.value; });
+
+  const actions = document.createElement("div");
+  actions.className = "note-actions";
+  actions.append(
+    createSmallButton("Save", "btn-note-save", () => {
+      const text = input.value.trim();
+      if (text) onSave(text); // empty or whitespace-only: do nothing
+    }),
+    createSmallButton("Cancel", "btn-note-cancel", cancelEditing)
+  );
+
+  editor.append(input, actions);
+  return editor;
+}
+
+function createNotesSection(prompt) {
+  const section = document.createElement("div");
+  section.className = "notes";
+
+  const heading = document.createElement("h4");
+  heading.className = "notes-title";
+  heading.textContent = "Notes";
+  section.appendChild(heading);
+
+  if (prompt.notes.length > 0) {
+    const list = document.createElement("ul");
+    list.className = "notes-list";
+
+    prompt.notes.forEach((note) => {
+      const item = document.createElement("li");
+      item.className = "note";
+
+      if (isEditing(prompt.id, note.id)) {
+        item.appendChild(createNoteEditor((text) => updateNote(prompt.id, note.id, text)));
+      } else {
+        const text = document.createElement("span");
+        text.className = "note-text";
+        text.textContent = note.text;
+
+        const actions = document.createElement("div");
+        actions.className = "note-actions";
+        actions.append(
+          createSmallButton("Edit", "btn-note-edit", () => startEditing(prompt.id, note.id, note.text)),
+          createSmallButton("Delete", "btn-note-delete", () => deleteNote(prompt.id, note.id))
+        );
+
+        item.append(text, actions);
+      }
+      list.appendChild(item);
+    });
+
+    section.appendChild(list);
+  }
+
+  if (isEditing(prompt.id, "new")) {
+    section.appendChild(createNoteEditor((text) => addNote(prompt.id, text)));
+  } else {
+    section.appendChild(
+      createSmallButton("+ Add note", "btn-note-add", () => startEditing(prompt.id, "new", ""))
+    );
+  }
+
+  return section;
+}
+
 function deletePrompt(id) {
   savePrompts(loadPrompts().filter((p) => p.id !== id));
+  if (editing && editing.promptId === id) editing = null;
   render();
 }
 
@@ -129,7 +266,7 @@ form.addEventListener("submit", (e) => {
   if (!title || !content) return;
 
   const prompts = loadPrompts();
-  prompts.unshift({ id: Date.now().toString(), title, content, rating: 0 });
+  prompts.unshift({ id: Date.now().toString(), title, content, rating: 0, notes: [] });
   savePrompts(prompts);
 
   form.reset();
