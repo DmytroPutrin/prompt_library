@@ -6,13 +6,43 @@ const titleInput = document.getElementById("prompt-title");
 const contentInput = document.getElementById("prompt-content");
 const promptList = document.getElementById("prompt-list");
 const emptyState = document.getElementById("empty-state");
+const modelInput = document.getElementById("prompt-model");
+const isCodeInput = document.getElementById("prompt-is-code");
+const formError = document.getElementById("form-error");
+
+// Prompts saved before metadata existed get a fallback, dated from their id (a Date.now() value).
+function fallbackMetadata(prompt) {
+  const ms = Number(prompt.id);
+  const createdAt = new Date(Number.isFinite(ms) ? ms : Date.now()).toISOString();
+  return {
+    model: "Unknown",
+    createdAt,
+    updatedAt: createdAt,
+    tokenEstimate: estimateTokens(prompt.content ?? "", false),
+  };
+}
 
 function loadPrompts() {
   try {
     const prompts = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-    return prompts.map((p) => ({ ...p, rating: p.rating ?? 0, notes: p.notes ?? [] }));
-  } catch {
+    return prompts.map((p) => ({
+      ...p,
+      rating: p.rating ?? 0,
+      notes: p.notes ?? [],
+      metadata: p.metadata ?? fallbackMetadata(p),
+    }));
+  } catch (err) {
+    console.error("Could not load prompts:", err);
     return [];
+  }
+}
+
+// Bumps updatedAt on a prompt; on failure keeps the old metadata so the change still saves.
+function touch(prompt) {
+  try {
+    prompt.metadata = updateTimestamps(prompt.metadata);
+  } catch (err) {
+    console.error("Could not update timestamps:", err);
   }
 }
 
@@ -28,7 +58,9 @@ function preview(text) {
 }
 
 function render() {
-  const prompts = loadPrompts();
+  // Newest first (ISO 8601 strings sort correctly as text)
+  const prompts = loadPrompts().sort((a, b) =>
+    b.metadata.createdAt.localeCompare(a.metadata.createdAt));
   promptList.innerHTML = "";
   emptyState.hidden = prompts.length > 0;
 
@@ -51,7 +83,7 @@ function render() {
     footer.className = "card-footer";
     footer.append(createStarRating(prompt), deleteBtn);
 
-    card.append(title, content, createNotesSection(prompt), footer);
+    card.append(title, content, createMetadataDisplay(prompt.metadata), createNotesSection(prompt), footer);
     promptList.appendChild(card);
   });
 }
@@ -64,6 +96,7 @@ function setRating(promptId, value) {
   const prompt = prompts.find((p) => p.id === promptId);
   if (!prompt) return;
   prompt.rating = prompt.rating === value ? 0 : value;
+  touch(prompt);
   savePrompts(prompts);
   justRated = { id: promptId, value };
   render();
@@ -129,6 +162,7 @@ function updatePromptNotes(promptId, change) {
   const prompt = prompts.find((p) => p.id === promptId);
   if (!prompt) return;
   prompt.notes = change(prompt.notes);
+  touch(prompt);
   savePrompts(prompts);
 }
 
@@ -265,10 +299,18 @@ form.addEventListener("submit", (e) => {
   const content = contentInput.value.trim();
   if (!title || !content) return;
 
-  const prompts = loadPrompts();
-  prompts.unshift({ id: Date.now().toString(), title, content, rating: 0, notes: [] });
-  savePrompts(prompts);
+  try {
+    const metadata = trackModel(modelInput.value, content, isCodeInput.checked);
+    const prompts = loadPrompts();
+    prompts.unshift({ id: Date.now().toString(), title, content, rating: 0, notes: [], metadata });
+    savePrompts(prompts);
+  } catch (err) {
+    formError.textContent = err.message;
+    formError.hidden = false;
+    return;
+  }
 
+  formError.hidden = true;
   form.reset();
   titleInput.focus();
   render();

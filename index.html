@@ -19,6 +19,16 @@
       <label for="prompt-content">Content</label>
       <textarea id="prompt-content" rows="6" placeholder="Write your prompt here..." required></textarea>
 
+      <label for="prompt-model">Model</label>
+      <input id="prompt-model" type="text" maxlength="100" placeholder="e.g. Claude Opus 5.5" required>
+
+      <label class="checkbox-label">
+        <input id="prompt-is-code" type="checkbox">
+        Contains code (adjusts token estimate)
+      </label>
+
+      <p id="form-error" class="form-error" role="alert" hidden></p>
+
       <button type="submit" class="btn-save">Save Prompt</button>
     </form>
 
@@ -29,6 +39,7 @@
     </section>
   </main>
 
+  <script src="metadata.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

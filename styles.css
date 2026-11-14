@@ -85,6 +85,27 @@ body {
   box-shadow: 0 0 0 3px rgba(63, 185, 80, 0.2);
 }
 
+.prompt-form .checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+
+.prompt-form input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.form-error {
+  color: var(--danger);
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+}
+
 .btn-save {
   align-self: flex-start;
   background: var(--accent);
@@ -152,6 +173,62 @@ body {
   font-size: 0.9rem;
   flex-grow: 1;
   overflow-wrap: anywhere;
+}
+
+/* Metadata */
+.metadata {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+}
+
+.metadata-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.metadata dt {
+  color: var(--muted);
+}
+
+.metadata dd {
+  color: var(--text);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.metadata-model {
+  color: var(--accent) !important;
+}
+
+.confidence {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.confidence-high {
+  color: var(--accent);
+}
+
+.confidence-medium {
+  color: var(--star);
+}
+
+.confidence-low {
+  color: var(--danger);
 }
 
 /* Notes */
