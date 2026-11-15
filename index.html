@@ -33,13 +33,34 @@
     </form>
 
     <section>
-      <h2 class="section-title">// saved prompts</h2>
+      <div class="section-header">
+        <h2 class="section-title">// saved prompts</h2>
+        <div class="io-toolbar">
+          <button type="button" id="export-btn" class="btn-small">Export</button>
+          <button type="button" id="import-btn" class="btn-small">Import</button>
+          <input type="file" id="import-file" accept="application/json,.json" hidden>
+        </div>
+      </div>
+      <div id="io-status" class="io-status" role="status" hidden></div>
       <p id="empty-state" class="empty-state">No prompts saved yet.</p>
       <div id="prompt-list" class="prompt-list"></div>
     </section>
   </main>
 
+  <dialog id="app-dialog" class="dialog">
+    <form method="dialog" class="dialog-body">
+      <h3 id="dialog-title" class="dialog-title"></h3>
+      <div id="dialog-message" class="dialog-message"></div>
+      <label id="dialog-apply-all" class="checkbox-label" hidden>
+        <input type="checkbox" id="dialog-apply-all-input">
+        Apply this choice to all remaining conflicts
+      </label>
+      <div id="dialog-actions" class="dialog-actions"></div>
+    </form>
+  </dialog>
+
   <script src="metadata.js"></script>
   <script src="script.js"></script>
+  <script src="io.js"></script>
 </body>
 </html>

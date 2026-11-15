@@ -22,15 +22,20 @@ function fallbackMetadata(prompt) {
   };
 }
 
+// Fills in fields that older prompts (saved before ratings/notes/metadata existed) lack.
+function normalizePrompt(p) {
+  return {
+    ...p,
+    rating: p.rating ?? 0,
+    notes: p.notes ?? [],
+    metadata: p.metadata ?? fallbackMetadata(p),
+  };
+}
+
 function loadPrompts() {
   try {
     const prompts = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-    return prompts.map((p) => ({
-      ...p,
-      rating: p.rating ?? 0,
-      notes: p.notes ?? [],
-      metadata: p.metadata ?? fallbackMetadata(p),
-    }));
+    return prompts.map(normalizePrompt);
   } catch (err) {
     console.error("Could not load prompts:", err);
     return [];

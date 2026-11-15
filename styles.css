@@ -133,6 +133,159 @@ body {
   margin-bottom: 16px;
 }
 
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.section-header .section-title {
+  margin-bottom: 0;
+}
+
+.io-toolbar {
+  display: flex;
+  gap: 8px;
+}
+
+.io-status {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  border: 1px solid var(--border);
+  border-left-width: 3px;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  background: var(--surface);
+}
+
+.io-status ul {
+  margin: 6px 0 0 18px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.io-status-success { border-left-color: var(--accent); }
+.io-status-error { border-left-color: var(--danger); }
+.io-status-error p { color: var(--danger); }
+.io-status-info { border-left-color: var(--muted); }
+
+/* Dialog */
+.dialog {
+  margin: auto;
+  width: min(520px, calc(100% - 32px));
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0;
+}
+
+.dialog::backdrop {
+  background: rgba(1, 4, 9, 0.7);
+}
+
+.dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+}
+
+.dialog-title {
+  font-family: var(--mono);
+  font-size: 1rem;
+  color: var(--accent);
+}
+
+.dialog-message {
+  font-size: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-wrap: anywhere;
+}
+
+.dialog .checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.dialog .checkbox-label[hidden] {
+  display: none;
+}
+
+.dialog input[type="checkbox"] {
+  accent-color: var(--accent);
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.btn-primary {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-primary:hover,
+.btn-primary:focus-visible {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.btn-danger:hover,
+.btn-danger:focus-visible {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.conflict-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.conflict-col {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+}
+
+.conflict-col h4 {
+  font-size: 0.8rem;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+
+.conflict-col dt {
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.conflict-col dd {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 480px) {
+  .conflict-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .empty-state {
   color: var(--muted);
   font-family: var(--mono);
